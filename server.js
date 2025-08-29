@@ -74,27 +74,8 @@ async function processVerification(mc_number, res) {
     
     const fmcsaData = await response.json();
     
-    // Format response for HappyRobot
-    const verificationResult = {
-        verified: true,
-        mc_number: cleanMC,
-        company_name: fmcsaData.carrier?.legalName || 'Unknown',
-        dba_name: fmcsaData.carrier?.dbaName || null,
-        status: fmcsaData.carrier?.carrierOperationStatus || 'Unknown',
-        authority_status: fmcsaData.carrier?.commonAuthorityStatus || 'Unknown',
-        safety_rating: fmcsaData.carrier?.safetyRating || 'Not Rated',
-        phone: fmcsaData.carrier?.phyPhone || null,
-        address: {
-            street: fmcsaData.carrier?.phyStreet || null,
-            city: fmcsaData.carrier?.phyCity || null,
-            state: fmcsaData.carrier?.phyState || null,
-            zip: fmcsaData.carrier?.phyZipcode || null
-        },
-        eligibility_summary: generateEligibilitySummary(fmcsaData.carrier),
-        raw_data: fmcsaData // Include full response for debugging
-    };
-    
-    res.json(verificationResult);
+    // Just return the raw FMCSA data - no processing
+    res.json(fmcsaData);
 }
 
 // Error handler for verification
@@ -109,24 +90,7 @@ function handleVerificationError(error, mc_number, res) {
     });
 }
 
-// Helper function to determine carrier eligibility
-function generateEligibilitySummary(carrier) {
-    if (!carrier) return 'Carrier not found';
-    
-    const status = carrier.carrierOperationStatus;
-    const authority = carrier.commonAuthorityStatus;
-    const safety = carrier.safetyRating;
-    
-    if (status === 'AUTHORIZED' && authority === 'ACTIVE') {
-        return `Eligible carrier with ${safety || 'no'} safety rating`;
-    } else if (status !== 'AUTHORIZED') {
-        return 'Not authorized for operations';
-    } else if (authority !== 'ACTIVE') {
-        return 'Authority status inactive';
-    } else {
-        return 'Verification incomplete - manual review needed';
-    }
-}
+
 
 // Error handling middleware
 app.use((error, req, res, next) => {
